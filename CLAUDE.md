@@ -6,10 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A single-file Kanban board demo for a fictional "UOB IT PMO" (internal training tool, not an official UOB system — no real logo/branding, corporate-blue text wordmark only). The full spec is in `requirment.md`; treat it as the source of truth for scope and constraints.
 
-Two files matter:
+Files that matter:
 
 - `index.html` — the entire app (markup, `<style>`, `<script>`).
 - `requirment.md` — the requirements the app was built to.
+- `README.md` — public-facing description, live demo link, setup notes.
+- `.claude/commands/publish-github.md` — the `/publish-github` slash command.
+- `.mcp.json` — project-scoped MCP servers (Playwright).
+- `.github/workflows/deploy-pages.yml` — Pages deployment.
+
+**Not in git, and must stay that way:** four `*.docx` assessment files sit in this directory and contain the user's name and partial NRIC. `.gitignore` excludes `*.docx` wholesale. Never `git add -f` them, never paste their contents into a committed file, and never publish them.
 
 ## Hard constraints (from the spec — do not break these)
 
@@ -46,6 +52,23 @@ Gotchas learned while verifying:
 - Headless Chrome clamps the window to a 500px minimum width, so `--window-size=390,...` does **not** test the mobile breakpoint. Load the page in a 390px-wide `<iframe>` from a host page (run Chrome with `--allow-file-access-from-files`) to test the stacked layout.
 - For behaviour smoke tests, copy `index.html` to a scratch file, stub `window.fetch` before the main script so no real FormSubmit request goes out, append a test `<script>` that drives the DOM and writes results into a `<pre>`, then `--dump-dom` and read that element.
 - Author `display: flex` on `.modal-backdrop` beats the UA `[hidden]` rule; the explicit `.modal-backdrop[hidden] { display: none; }` rule must stay.
+
+## Repository, deployment and tooling
+
+- **Remote:** `origin` → https://github.com/BharathKumarBachina/Training, branch `main`.
+- **Live site:** https://bharathkumarbachina.github.io/Training/ — the repo root is served, so `index.html` is the home page.
+- **Pages is deployed by Actions, not from a branch.** `.github/workflows/deploy-pages.yml` uploads the repo root and runs on every push to `main`. The Pages `build_type` was switched from `legacy` to `workflow` via the API; do not switch it back to branch deployment or the workflow output stops being served.
+- **Commit identity is repo-local:** `user.name`/`user.email` are set in `.git/config` to the user's name and gmail address. The global git identity is different and must not be changed.
+- **Two GitHub accounts are logged into `gh` on this machine.** `BharathKumarBachina` owns this repo and must be the active one; `kumarmindcres` has read-only access and pushing under it fails with 403. Check with `gh auth status`, switch with `gh auth switch --user BharathKumarBachina`.
+- Pushing workflow files needs the `workflow` OAuth scope, which has been granted. If a push is ever rejected for that reason again, the fix is for the user to run `gh auth refresh -h github.com -s workflow`.
+
+### `/publish-github` slash command
+
+`.claude/commands/publish-github.md` takes a repo URL or `owner/repo` and runs five steps: secret scan (a hard gate), push, Pages via Actions, README, then repo About and homepage. Use it for republishing rather than doing the steps ad hoc. Its scan greps for API keys, tokens, private keys, connection strings, NRIC/FIN patterns, phone numbers and emails across everything git would commit.
+
+### Playwright MCP
+
+`.mcp.json` registers the Playwright MCP server (`npx -y @playwright/mcp@latest`, stdio). Project-scoped servers require one-time approval, so **if the `mcp__playwright__*` tools are missing, the user has not approved it yet** — ask them to approve when Claude Code prompts on startup, or check `claude mcp list`. Chromium binaries are already in the local Playwright cache. Once approved, prefer these tools over the headless-Chrome shell commands above for testing the deployed site, since they drive a real browser and can snapshot, click and read console output.
 
 ## Architecture of `index.html`
 
