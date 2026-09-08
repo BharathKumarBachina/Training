@@ -43,7 +43,12 @@ Or double-click `index.html` in Finder / Explorer.
 - `requirment.md` — the requirements the app was built against.
 - `CLAUDE.md` — project notes for Claude Code (architecture, constraints, how to verify).
 - `.claude/commands/publish-github.md` — the `/publish-github` slash command used to publish this repo.
+- `.mcp.json` — project-scoped MCP servers (Playwright, for browser testing).
 - `.github/workflows/deploy-pages.yml` — GitHub Pages deployment workflow.
+
+## Browser testing
+
+The project includes the Playwright MCP server in `.mcp.json`, so Claude Code can drive a real browser to test the board. Approve it once when prompted on first run, then ask Claude to navigate to the site and exercise the flows. The server is fetched on demand with `npx`, so there is nothing to install.
 
 ## Configuration
 
