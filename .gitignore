@@ -1,0 +1,21 @@
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+credentials.json
+serviceAccount*.json
+
+# Personal / assessment documents — never publish
+*.docx
+~$*
+
+# OS / tooling
+.DS_Store
+node_modules/
+venv/
+__pycache__/
+*.log
