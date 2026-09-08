@@ -40,6 +40,7 @@ Or double-click `index.html` in Finder / Explorer.
 - Filter bar by project, assignee and priority; header summary of totals, per-status counts and overdue count.
 - Accessible: labelled inputs, visible focus rings, `aria-label` on icon buttons, polite live region for toasts.
 - All user input is HTML-escaped before rendering.
+- WhatsApp floating widget (bottom-right) that opens a `wa.me` chat with a prefilled message.
 
 ## Project structure
 
@@ -49,6 +50,8 @@ Or double-click `index.html` in Finder / Explorer.
 - `.claude/commands/publish-github.md` — the `/publish-github` slash command used to publish this repo.
 - `.mcp.json` — project-scoped MCP servers (Playwright, for browser testing).
 - `.github/workflows/deploy-pages.yml` — GitHub Pages deployment workflow.
+- `.claude/hooks/check-constraints.sh` — guards the spec's hard constraints after any edit to `index.html`.
+- `.claude/settings.json` — registers that guard as a `PostToolUse` hook.
 - `docs/screenshot.png` — screenshot of the live site, captured with Playwright and shown above.
 
 ## Browser testing
@@ -64,6 +67,15 @@ const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/YOUR_EMAIL@example.com";
 ```
 
 FormSubmit requires a one-time activation: the first submission sends a confirmation email to that address, and notifications only deliver after the link in it is clicked. Until then the app shows a "notification failed" warning toast but the board keeps working.
+
+The WhatsApp widget reads two constants in the same block:
+
+```js
+const WHATSAPP_NUMBER = "6591234567";   // full international number, digits only
+const WHATSAPP_MESSAGE = "Hi, I have a question about the IT PMO board.";
+```
+
+`wa.me` rejects `+`, spaces and dashes, so the number is stripped to digits before the link is built. Set `WHATSAPP_NUMBER` to `""` to hide the widget entirely.
 
 ## Deployment
 

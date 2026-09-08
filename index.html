@@ -465,9 +465,66 @@
     }
     .form-note { font-size: var(--fs-xs); color: var(--text-2); margin-right: auto; }
 
+    /* ---------- WhatsApp floating widget ----------
+       Brand green #25D366 renders a white glyph at only 1.98:1, under the
+       3:1 WCAG 1.4.11 needs for a meaningful graphic, so the fill is the
+       same hue darkened to 3.47:1. The label is a separate white pill so
+       its text sits at 12.6:1 rather than on the green. */
+    .wa-fab {
+      position: fixed; right: var(--sp-5); bottom: var(--sp-5);
+      z-index: 70;
+      display: flex; align-items: center; gap: var(--sp-2);
+      text-decoration: none;
+    }
+    .wa-fab-label {
+      background: var(--surface); color: var(--text);
+      font-size: var(--fs-sm); font-weight: 600;
+      padding: var(--sp-2) var(--sp-3);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-md);
+      white-space: nowrap;
+      opacity: 0; transform: translateX(8px);
+      transition: opacity .2s ease, transform .2s ease;
+      pointer-events: none;
+    }
+    .wa-fab-btn {
+      position: relative;
+      width: 56px; height: 56px; flex-shrink: 0;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: #1C9E4D;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(28, 158, 77, .40), 0 2px 6px rgba(0, 0, 0, .12);
+      transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .wa-fab-btn svg { width: 30px; height: 30px; }
+    .wa-fab:hover .wa-fab-btn,
+    .wa-fab:focus-visible .wa-fab-btn {
+      background: #1A9246;
+      transform: scale(1.06);
+      box-shadow: 0 10px 26px rgba(28, 158, 77, .48), 0 3px 8px rgba(0, 0, 0, .16);
+    }
+    .wa-fab:hover .wa-fab-label,
+    .wa-fab:focus-visible .wa-fab-label { opacity: 1; transform: none; }
+    .wa-fab:focus-visible { outline: none; }
+    .wa-fab:focus-visible .wa-fab-btn { outline: 3px solid var(--blue); outline-offset: 3px; }
+    /* Quiet pulse draws the eye once without becoming a distraction */
+    .wa-fab-btn::after {
+      content: ""; position: absolute;
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 2px solid #1C9E4D;
+      animation: wa-pulse 2.6s ease-out 3;
+    }
+    @keyframes wa-pulse {
+      0%   { opacity: .55; transform: scale(1); }
+      70%  { opacity: 0;   transform: scale(1.5); }
+      100% { opacity: 0;   transform: scale(1.5); }
+    }
+
     /* ---------- Toasts ---------- */
     .toast-region {
-      position: fixed; right: var(--sp-4); bottom: var(--sp-4);
+      position: fixed; right: var(--sp-4); bottom: 88px;
       display: flex; flex-direction: column; gap: var(--sp-2);
       z-index: 60; max-width: min(360px, calc(100vw - 32px));
     }
@@ -509,12 +566,17 @@
       .board-canvas { padding: var(--sp-4); }
       .tool-field input { width: 100%; }
       .modal-backdrop { padding: var(--sp-3); }
+      .wa-fab { right: var(--sp-4); bottom: var(--sp-4); }
+      .wa-fab-label { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none; transition: none; }
       .card:hover { transform: none; }
       .btn:active { transform: none; }
+      .wa-fab:hover .wa-fab-btn, .wa-fab:focus-visible .wa-fab-btn { transform: none; }
+      .wa-fab-btn::after { display: none; }
+      .wa-fab-label { opacity: 1; transform: none; }
     }
   </style>
 </head>
@@ -695,6 +757,22 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       WHATSAPP FLOATING WIDGET
+       href is set by initWhatsApp() from WHATSAPP_NUMBER; the element
+       stays hidden until a number is configured.
+       ============================================================ -->
+  <a class="wa-fab" id="whatsappFab" href="#" target="_blank" rel="noopener noreferrer"
+     aria-label="Chat with the IT PMO team on WhatsApp (opens in a new tab)" hidden>
+    <span class="wa-fab-label" aria-hidden="true">Chat with us</span>
+    <span class="wa-fab-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.39-1.47-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35z"/>
+        <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.28-1.38a9.9 9.9 0 0 0 4.76 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15h-.01c-1.48 0-2.94-.4-4.21-1.15l-.3-.18-3.13.82.84-3.05-.2-.31a8.2 8.2 0 0 1-1.26-4.37c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.83 2.42a8.19 8.19 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23z"/>
+      </svg>
+    </span>
+  </a>
+
   <!-- Toast region: announced politely to screen readers -->
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="false"></div>
 
@@ -716,6 +794,15 @@
        a warning toast (the board keeps working regardless).
        ========================================================== */
     const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/YOUR_EMAIL@example.com";
+
+    /* ==========================================================
+       WHATSAPP WIDGET CONFIG
+       Full international number, digits only — no "+", spaces or
+       dashes (wa.me rejects those). Singapore example: 6591234567.
+       Set to "" to hide the widget entirely.
+       ========================================================== */
+    const WHATSAPP_NUMBER = "6500000000";
+    const WHATSAPP_MESSAGE = "Hi, I have a question about the IT PMO board.";
 
     /* ---------- Static option lists ---------- */
     const STATUSES = ["Backlog", "In Progress", "Blocked", "Done"];
@@ -1366,11 +1453,25 @@
     /* ==========================================================
        BOOT
        ========================================================== */
+    /**
+     * Point the floating widget at wa.me and reveal it.
+     * Hidden when no number is configured, so the demo never ships a
+     * button that opens a chat with nobody.
+     */
+    function initWhatsApp() {
+      const fab = document.getElementById("whatsappFab");
+      const digits = String(WHATSAPP_NUMBER).replace(/\D/g, "");
+      if (!digits) return;                       // stays hidden
+      fab.href = `https://wa.me/${digits}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
+      fab.hidden = false;
+    }
+
     function init() {
       seedTasks();
       initFilters();
       initForm();
       initBoardEvents();
+      initWhatsApp();
       renderBoard();
     }
 
