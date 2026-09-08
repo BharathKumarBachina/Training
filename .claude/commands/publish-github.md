@@ -1,7 +1,7 @@
 ---
-description: Scan for secrets, push the project to GitHub, deploy GitHub Pages via Actions, write the README, and set the repo About with the Pages link
+description: Scan for secrets, push the project to GitHub, deploy GitHub Pages via Actions, screenshot the live site with Playwright, write the README, and set the repo About with the Pages link
 argument-hint: <github-repo-url or owner/repo>
-allowed-tools: Bash(git *), Bash(gh *), Bash(grep *), Bash(find *), Bash(ls *), Bash(cat *), Bash(curl *), Read, Write, Edit, Glob, Grep
+allowed-tools: Bash(git *), Bash(gh *), Bash(grep *), Bash(find *), Bash(ls *), Bash(cat *), Bash(curl *), Bash(mkdir *), Bash(mv *), Read, Write, Edit, Glob, Grep, mcp__playwright__browser_resize, mcp__playwright__browser_navigate, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_console_messages, mcp__playwright__browser_close
 ---
 
 # Publish this project to GitHub
@@ -46,12 +46,26 @@ Normalise the target into `OWNER`, `REPO` and `REMOTE_URL` (`https://github.com/
 3. Point Pages at the workflow: `gh api -X POST repos/OWNER/REPO/pages -f build_type=workflow` (if Pages already exists use `-X PUT`). This replaces any "deploy from branch" setting.
 4. Commit and push the workflow, then wait for the run: `gh run watch` (or poll `gh run list --workflow=deploy-pages.yml --limit 1`). Read the Pages URL with `gh api repos/OWNER/REPO/pages --jq .html_url` and confirm it returns HTTP 200 with `curl -s -o /dev/null -w "%{http_code}" URL`. If the run fails, read the log with `gh run view --log-failed`, fix the workflow, and push again.
 
-## Step 4 — Create or update README.md
+## Step 4 — Capture a screenshot of the live site
+
+Do this only after Step 3 confirmed the Pages URL returns 200, so the screenshot shows the deployed site rather than a local file.
+
+1. Use the Playwright MCP tools (`.mcp.json` registers the server; if the `mcp__playwright__*` tools are missing, ask the user to approve it and skip this step rather than falling back to something else):
+   - `mcp__playwright__browser_resize` to 1440 x 1000 for a desktop-width view.
+   - `mcp__playwright__browser_navigate` to the Pages URL.
+   - `mcp__playwright__browser_take_screenshot` with `fullPage: true`, `scale: "css"` and `filename: "screenshot.png"`.
+2. Move the file to `docs/screenshot.png` in the repo (create `docs/` if needed) and overwrite any previous one, so the README link stays stable.
+3. Read the image back and check it actually shows the app — real content, no error page, no half-loaded layout. If the page renders wrong, fix that first; do not commit a broken screenshot.
+4. Check `mcp__playwright__browser_console_messages` for errors. A missing `favicon.ico` 404 is expected and harmless; anything else should be reported to the user.
+5. Make sure `.gitignore` has `.playwright-mcp/` so the MCP server's scratch snapshots and console logs are never committed. `docs/screenshot.png` itself **is** committed.
+
+## Step 5 — Create or update README.md
 
 If `README.md` does not exist, create it. If it exists, update it in place and keep any sections the user wrote. It must contain:
 
 - Project title and a one-paragraph description of what the app does.
 - **Live demo** link to the GitHub Pages URL from Step 3.
+- A **Screenshot** section right after the live demo link, embedding the Step 4 image with `![<alt text>](docs/screenshot.png)` and descriptive alt text saying what the screen shows.
 - How to run it locally (for a static site: open `index.html`; otherwise the install/run commands).
 - Tech stack and key features (short bullets).
 - Project structure (only the files that matter, not a full tree).
@@ -60,7 +74,7 @@ If `README.md` does not exist, create it. If it exists, update it in place and k
 
 Commit and push the README.
 
-## Step 5 — Set the repository About and homepage
+## Step 6 — Set the repository About and homepage
 
 1. Write a one-sentence description of the project.
 2. `gh repo edit OWNER/REPO --description "<description>" --homepage "<Pages URL>"`.
@@ -74,5 +88,6 @@ Reply with a short summary containing:
 - Secret scan result and what was checked.
 - Repository URL and the branch pushed.
 - GitHub Pages URL and whether it returned 200.
+- Where the screenshot was saved, and any console errors seen while capturing it.
 - What changed in README.md and the About/homepage values.
 - Anything skipped or blocked, and why.

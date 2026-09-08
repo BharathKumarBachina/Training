@@ -8,6 +8,10 @@ This is not an official UOB system. It uses a plain text wordmark and a corporat
 
 https://bharathkumarbachina.github.io/Training/
 
+## Screenshot
+
+![The UOB IT PMO Kanban board: header summary strip, filter bar and four columns of task cards](docs/screenshot.png)
+
 ## Run locally
 
 No install, build or server is needed. Clone the repo and open the file:
@@ -45,6 +49,7 @@ Or double-click `index.html` in Finder / Explorer.
 - `.claude/commands/publish-github.md` — the `/publish-github` slash command used to publish this repo.
 - `.mcp.json` — project-scoped MCP servers (Playwright, for browser testing).
 - `.github/workflows/deploy-pages.yml` — GitHub Pages deployment workflow.
+- `docs/screenshot.png` — screenshot of the live site, captured with Playwright and shown above.
 
 ## Browser testing
 
